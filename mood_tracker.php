@@ -120,11 +120,18 @@ if (isset($_GET['action'])) {
         $note_text = $_POST['note'] ?? '';
         if (!$note_date) { echo json_encode(['ok' => false, 'msg' => 'Missing date']); exit(); }
 
-        // Ensure table exists
-        $conn->query("CREATE TABLE IF NOT EXISTS mood_notes (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, note_date DATE NOT NULL, note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY ux_user_date (user_id, note_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-        // Upsert
-        $up_sql = "INSERT INTO mood_notes (user_id, note_date, note) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE note = VALUES(note)";
+        // Ensure table exists and choose correct upsert syntax per DB driver
+        if (getenv('DB_DRIVER') === 'pgsql') {
+            // PostgreSQL-compatible
+            $conn->query("CREATE TABLE IF NOT EXISTS mood_notes (id SERIAL PRIMARY KEY, user_id INT NOT NULL, note_date DATE NOT NULL, note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE (user_id, note_date))");
+            // Upsert using ON CONFLICT
+            $up_sql = "INSERT INTO mood_notes (user_id, note_date, note) VALUES (?, ?, ?) ON CONFLICT (user_id, note_date) DO UPDATE SET note = EXCLUDED.note";
+        } else {
+            // MySQL-compatible
+            $conn->query("CREATE TABLE IF NOT EXISTS mood_notes (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, note_date DATE NOT NULL, note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY ux_user_date (user_id, note_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            // Upsert using ON DUPLICATE KEY
+            $up_sql = "INSERT INTO mood_notes (user_id, note_date, note) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE note = VALUES(note)";
+        }
         $up_stmt = $conn->prepare($up_sql);
         $up_stmt->bind_param("iss", $user_id, $note_date, $note_text);
         $ok = $up_stmt->execute();

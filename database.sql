@@ -1,101 +1,83 @@
 -- =====================================================
 -- MIND CARE - Self Help Mental Health Application
--- Fresh Database Schema (Clean)
+-- Database Tables Only (Database Already Exists)
 -- =====================================================
 
--- Drop existing database and create fresh one
-DROP DATABASE IF EXISTS mindcare_db;
-CREATE DATABASE mindcare_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- Make sure we're using the correct database
 USE mindcare_db;
 
 -- =====================================================
 -- USERS TABLE
 -- =====================================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    phone VARCHAR(15),
-    gender ENUM('Laki-laki', 'Perempuan', 'Lainnya'),
+    phone VARCHAR(20),
+    gender VARCHAR(20),
     date_of_birth DATE,
     address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    is_active TINYINT DEFAULT 1,
-    INDEX idx_email (email),
-    INDEX idx_created_at (created_at)
+    is_active INT DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- JOURNALS TABLE
 -- =====================================================
-CREATE TABLE journals (
+CREATE TABLE IF NOT EXISTS journals (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    title VARCHAR(200),
-    content LONGTEXT NOT NULL,
+    title VARCHAR(255),
+    content LONGTEXT,
     mood VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id),
-    INDEX idx_created_at (created_at)
+    CONSTRAINT fk_journals_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- MOOD TRACKER TABLE
 -- =====================================================
-CREATE TABLE mood_tracker (
+CREATE TABLE IF NOT EXISTS mood_tracker (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    mood VARCHAR(500),
-    intensity INT,
+    mood VARCHAR(100),
+    intensity INT DEFAULT 5,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id),
-    INDEX idx_created_at (created_at)
+    CONSTRAINT fk_mood_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- APPOINTMENTS TABLE
 -- =====================================================
-CREATE TABLE appointments (
+CREATE TABLE IF NOT EXISTS appointments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     therapist_name VARCHAR(100),
     appointment_date DATETIME,
     notes TEXT,
-    status ENUM('scheduled', 'completed', 'cancelled') DEFAULT 'scheduled',
+    status VARCHAR(50) DEFAULT 'scheduled',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id),
-    INDEX idx_appointment_date (appointment_date)
+    CONSTRAINT fk_appointments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- MEDICATIONS TABLE
 -- =====================================================
-CREATE TABLE medications (
+CREATE TABLE IF NOT EXISTS medications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     medication_name VARCHAR(100),
-    dosage VARCHAR(50),
+    dosage VARCHAR(100),
     frequency VARCHAR(100),
     start_date DATE,
     end_date DATE,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id),
-    INDEX idx_start_date (start_date)
+    CONSTRAINT fk_medications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- DATABASE SETUP COMPLETE
 -- =====================================================
--- Status: Clean fresh database ready to use
--- All tables created with proper foreign keys
--- No duplicate data or constraints
--- Ready for application use

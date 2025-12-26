@@ -1,0 +1,11 @@
+{
+  "name": "MindCare",
+  "description": "Self Help Mental Health Application",
+  "keywords": ["php", "mental-health", "wellness"],
+  "repository": "https://github.com/your-username/mindcare1",
+  "engines": {
+    "php": "8.1.x"
+  },
+  "require": {},
+  "require-dev": {}
+}
