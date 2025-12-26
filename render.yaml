@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: mindcare
+    env: php
+    plan: free
+    runtime: php
+    buildCommand: "composer install --no-dev || true"
+    startCommand: "php -S 0.0.0.0:$PORT"
+    envVars:
+      - key: PHP_VERSION
+        value: 8.1
+      - key: APP_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: mindcare-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: mindcare-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: mindcare-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: mindcare-db
+          property: database
+      - key: BASE_URL
+        value: https://mindcare.onrender.com/
+
+databases:
+  - name: mindcare-db
+    plan: free
+    database: mindcare_db
